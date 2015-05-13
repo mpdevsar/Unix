@@ -1,0 +1,106 @@
+1. what is alternative to exception?
+2. exception syntax?
+1. exception syntax in function declaration? How can a function be declared as not throwing an excepti
+on?
+3. What is the best practice catching exeption? How to not loose information catching exception?
+
+3. What happens if a function declared as not throwing an exception throws exception?
+5. How do you handle excetion in constructor and destctor?
+
+4. Why noexcept is better than throw()?
+5. Why it is bad to throw exception from a destructor?
+6. Are exceptions helpful? What is alternative to exception?
+7. What is the strong exception safety guarantee?
+8. What is Checked versus Unchecked exceptions?
+
+1.
+        try {
+        ..
+        } catch ( exception e)  {
+          std::cout << "e" << std::endl;
+        } finally { ... }
+
+
+
+If a function is declared with type T listed in its exception specification, the function may throw exceptions of that 
+
+type or a type derived from it.
+
+If the function throws an exception of the type not listed in its exception specification, the function std::unexpected 
+
+is called. The default function calls std::terminate, but it may be replaced by a user-provided function (via 
+
+std::set_unexpected) which may call std::terminate or throw an exception. If the exception thrown from std::unexpected 
+
+is accepted by the exception specification, stack unwinding continues as usual. If it isn't, but std::bad_exception is 
+
+allowed by the exception specification, std::bad_exception is thrown. Otherwise,std::terminate is called.
+
+throw()     - says the function does not throw any exception. However, if it
+                   does, std::unexpected will be called.
+throw(...)  - the function can throw an exception
+throw(type) - the function can throw an exception of type type.
+
+catch(...) - will catch any exception. If you provide empty body with catch, it will not do anything with the 
+
+exception. 
+             That is ...
+catch(...) { } -- will basically swallow the exception. Can be done in destructor to prevent exceptions from leaving 
+
+the destructor.
+
+In the catch block - if you just 'throw;' - it will re-throw the same exception. That could be ideal thing to do in 
+
+many cases as it will retain all exception information.
+
+The c++11 noexcept operator requires a function to not throw an exception. In otherwords, if a function is not throwing 
+
+any exception, it can be declared no throw as :
+
+int func() noexcept;
+
+With C++11, throw() is deprecated.
+
+The noexcept-specification (just like dynamic exception specification) can appear as a part of a function declarator 
+
+when declaring functions, pointer to functions, references to functions, or pointers to member function type, and also 
+
+when declaring a parameter or a return type of a function that happens to be a pointer or reference to function. It 
+
+cannot appear in a typedef or type alias declaration.
+
+void f() noexcept; // the function f() does not throw
+void (*fp)() noexcept(false); // fp points to a function that may throw
+void g(void pfa() noexcept);  // g takes a pointer to function that doesn't throw
+// typedef int (*pf)() noexcept; // error
+
+If a search for a matching exception handler leaves a function marked noexcept or noexcept(true), std::terminate is 
+
+called immediately.
+Inheriting constructors and the implicitly-declared default constructors, copy constructors, move constructors, 
+
+destructors, copy-assignment operators, move-assignment operators are all noexcept(true) by default, unless they are 
+
+required to call a function that is noexcept(false), in which case these functions are noexcept(false).
+Any user-defined destructor is noexcept(true) by default, unless the declaration specifies otherwise, or the destructor 
+
+of any base or member is noexcept(false).
+Any deallocation function is noexcept(true) by default, unless the declaration specifies otherwise.
+
+Notes
+One of the uses of the constant expression is (along with the noexcept operator) to define function templates that 
+
+declare noexcept for some types but not others.
+Note that a noexcept specification on a function is not a compile-time check; it is merely a method for a programmer to 
+
+inform the compiler whether or not a function should throw exceptions. The compiler can use this information to enable 
+
+certain optimizations on non-throwing functions as well as enable the noexcept operator, which can check at compile 
+
+time if a particular expression is declared to throw any exceptions. For example, containers such as std::vector will 
+
+move their elements if the elements' move constructor is noexcept, and copy otherwise (unless the copy constructor is 
+
+not accessible, but a potentially throwing move constructor is, in which case the strong exception guarantee is 
+
+waived).
